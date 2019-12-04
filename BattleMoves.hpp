@@ -1,93 +1,59 @@
-#ifndef BATTLEMOVE_H
-#define BATTLEMOVE_H
+// This file contains battle moves classes definition
 
-#include <cstdlib>
-#include "Actor.hpp"
+#ifndef BATTLE_MOVE_H
+#define BATTLE_MOVE_H
 
-class IMove{
-    public:
-        virtual void Execute()=0;
-		virtual void Undo()=0;
+#include <random>
+
+// General move
+class IMove
+{
+	public:
+		void virtual execute() = 0;
+		void virtual undo() = 0;
 };
 
-class BattleMove: public IMove{
-    private:
-        Actor* self;
-        Actor* other;
-    public:
-        BattleMove(){};
-        BattleMove(Actor* self, Actor* other)
-			:self{self}, other{other}
-		{}
-};
-
-class AttackOne : public BattleMove{
-    private:
-        int damage;
-        Actor* self;
-		Actor* other;
-
-    public:
-        AttackOne(){}
-        AttackOne(Actor* self, Actor* other)
-            :self{self}, other{other}
-        {
-            damage = rand() % (15 - 10) + 10;
-        }
-
-        void Execute(){
-            other -> Hit(damage);
-        }
-
-        void Undo(){
-            other -> Heal(damage);
-        }
-};
-
-class AttackTwo: public BattleMove{
-    private:
-        int damage;
+// Move that can either hurt the opponent, or heal the player
+class BattleMove : public IMove
+{
+	public:
+		BattleMove(Actor * s, Actor * o);
+	protected:
 		Actor* self;
 		Actor* other;
-
-    public:
-        AttackTwo(){}
-        AttackTwo(Actor* self, Actor* other)
-           :self{self}, other{other}
-        {
-            damage = rand() % 25;
-        }
-
-        void Execute(){
-            other -> Hit(damage);
-        }
-
-        void Undo(){
-            other -> Heal(damage);
-        }
 };
 
-class Heal: public BattleMove{
-    private:
-        int heal;
-		Actor* self;
-		Actor* other;
-
-    public:
-        Heal(){}
-        Heal(Actor* self, Actor* other)
-           :self{self}, other{other}
-        {
-            heal = rand() % (15 - 10) + 10;
-        }
-
-        void Execute(){
-            self -> Heal(heal);
-        }
-
-        void Undo(){
-            self -> Hit(heal); 
-        }
+// Move that generate a random damage between 10 and 15
+class AttackOne : public BattleMove
+{
+	public:
+		AttackOne(Actor * s, Actor * o);
+		void execute();
+		void undo();
+	private:
+		int amount;
 };
 
-#endif // BATTLEMOVE_H
+// Move that generate a random damage between 0 and 25
+class AttackTwo : public BattleMove
+{
+	public:
+		AttackTwo(Actor * s, Actor * o);
+		void execute();
+		void undo();
+	private:
+		int amount;
+};
+
+// Move that generate a random heal amount between 10 and 15
+class Heal : public BattleMove
+{
+	public:
+		Heal(Actor * s, Actor * o);
+		void execute();
+		void undo();
+	private:
+		int amount;
+};
+
+#endif

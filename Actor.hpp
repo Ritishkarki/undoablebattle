@@ -1,129 +1,72 @@
-#ifndef ACTOR_H
-#define ACTOR_H
+// This file contains character classes definition
 
-#include <iostream>
+#ifndef Actor_H
+#define Actor_H
+
 #include <vector>
-#include <string>
-#include "enums.hpp"
 
-using namespace std;
+// General game character
+class Actor {
+	protected:
+		int health;
+		std::string type;
+		std::vector<MoveType> moves;
 
-class Actor{
-    protected:
-        int health; 
-        int damage; 
-        bool dead; 
-        string type;
-        vector<MoveType> moves;
 
-    public:
-        Actor(){}
-        Actor(string type, int health, vector<MoveType> moves)
-            :type{type}, health{health}, moves{moves}
-        {} 
+		friend std::ostream & operator<< (std::ostream & out, const Actor & actor);
 
-        virtual void Attack(Actor& actor) = 0;
+	public:
+		Actor(int health, std::string type);
+		Actor(const Actor & actor);
+		Actor & operator= (const Actor & actor);
+		
+		// performs actor's move, it will go through the MoveManager's method so that history is recorded on the stack
+		void doMove(MoveManager & mgr, const MoveType & moveType, Actor * other );
+		
+		// actor is damaged by certain amount
+		void Hit(int damage);
 
-        virtual void Hit(int damage){
-            health -= damage; 
-            health = max(0, health);
-            if(health == 0)
-                dead = true; 
-        } 
+		// actor is healed by certain amount
+		void Heal(int amount);
 
-        virtual void Heal(int heal){
-            health += heal;
-        }
+		// get actor type
+		std::string GetType() const;
 
-        void DoMove(){
-
-        }
-
-        vector<MoveType> GetMoves(){
-            return moves;
-        }
-
-        bool IsDead(){ return this->dead;}
-
-        string GetInfo(){ return type;}
-
-        friend ostream& operator<<(ostream& out, const Actor& a); 
+		// list of battle moves
+		const std::vector<MoveType> & GetMoves() const;
+		
+		// checks if the actor is dead
+		bool IsDead() const;
 };
 
-ostream& operator<<(ostream& out, const Actor& a){
-    out << a.type << " level: " << ", health: " << a.health; 
-    if(a.dead)
-        out << " (deceased)"; 
-    return out; 
-}
-
-class Knight: public Actor{
-    private:
-        int damage; 
-    public:
-        Knight(){}
-        Knight(string type, int health, vector<MoveType> moves):Actor(type, health, moves){
-            type = "Knight";
-            health = 100;
-            damage = 10; 
-            dead = false; 
-            moves = {attacktwo, heal};
-        }
-
-        void Attack(Actor& actor){
-            actor.Hit(damage);
-        }
+// Ghost with 100 health and AttackOne and Heal moves
+class Ghost : public Actor {
+	public:
+		Ghost(int health = 100, std::string type = "Ghost") : Actor(health, type) {
+			moves.push_back(MoveType::AttackOne);
+			moves.push_back(MoveType::Heal);
+		}
+		
 };
 
-class Warrior: public Actor{
-    private:
-        int damage; 
-    public:
-        Warrior(){}
-        Warrior(string type, int health, vector<MoveType> moves):Actor(type, health, moves){
-            type = "Warrior";
-            health = 100;
-            dead = false; 
-            moves={attackone,attacktwo};
-        }
-
-        void Attack(Actor& actor){
-            actor.Hit(damage);
-        }
+// Knight with 100 health and Attackone and Heal moves
+class Knight : public Actor {
+	public:
+		Knight(int health = 100, std::string type = "Knight") : Actor(health, type) {
+			moves.push_back(MoveType::AttackTwo);
+			moves.push_back(MoveType::Heal);
+		}
+		
 };
 
-class Ghost: public Actor{
-    private:
-        int spellBonus; 
-    public:
-        Ghost(){}
-        Ghost(string type, int health, vector<MoveType> moves):Actor(type, health, moves){
-            type = "Ghost"; 
-            health = 100;
-            damage = 5;
-            dead = false; 
-            moves={attackone, heal};
-        }
-        
-        void Attack(Actor& actor){
-            actor.Hit(damage); 
-        }
+// Warrior with 100 health and AttackOne and AttackTwo moves
+class Warrior : public Actor {
+	public:
+		Warrior(int health = 100, std::string type = "Warrior") : Actor(health, type) {
+			moves.push_back(MoveType::AttackOne);
+			moves.push_back(MoveType::AttackTwo);
+		}
+		
 };
 
-class ActorFactory{
-    public:
-    static Actor* CreateActor(ActorType actor){
-        Actor* a;
-        switch(actor){
-            case ActorType::ghost:
-                a = new Ghost();
-            case ActorType::knight:
-                a = new Knight();
-            case ActorType::warrior:
-                a = new Warrior();
-        }
-        return a;
-    }
-};
-
-#endif // ACTOR_H
+#endif // end actor definition
